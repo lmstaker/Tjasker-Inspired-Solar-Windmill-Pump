@@ -13,9 +13,14 @@ This program is distributed in the hope that it will be useful,
 but without any warranty.
 
 ## Usage
-For more information regarding the usage of this software, consult the Tjasker Instruction Manual
+For more information regarding the proper usage of this software, consult the Tjasker Instruction Manual
 
-## Recommendations
+## Requirements
+Raspberry Pi Tjasker system, the program requires `Python 3` or later versions and must have `Tkinter` (generally standard with Python 3 and later versions).
 
+## Installation Instructions
+Themed version: Download and install `TTkThemes` at <https://github.com/TkinterEP/ttkthemes/tree/master> following the instructions given there (generally easiest to download and install directly from PyPi) and download `Tjasker_GUI`, run in Idle or any Python shell.
+
+Unthemed version: Download `Tjasker_GUI_Unthemed`, run in Idle or any Python shell.
 
 
