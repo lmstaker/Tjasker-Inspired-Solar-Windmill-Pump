@@ -1,2 +1,2 @@
-'''Most recent version: tkintertest3.py, needs to be adapted for use in Raspberry Pi
-Most recent applicable version: GUISETWORKS.py, only set run mode operates fully'''
+'''Most recent version: TjaskerGUI.py, is being troubleshooted for use in Raspberry Pi
+and is the most recent applicable version'''
