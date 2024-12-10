@@ -147,6 +147,7 @@ def mode_selected():
                 showinfo(title='Error',message=msg)
             else:
                 #Run Tjasker
+                changemode_button.destroy()
                 spin_button.destroy()
                 global spinning
                 global turn
