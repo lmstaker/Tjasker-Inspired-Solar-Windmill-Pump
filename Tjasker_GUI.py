@@ -94,7 +94,6 @@ selected_mode.pack(padx=5,pady=10)
 selected_mode.current()
 #Motor running
 def scanning():
-    global temp
     global turn
     temp = sensor.read_temperature()
     if spinning:
@@ -104,8 +103,6 @@ def scanning():
         elif turn[0]=='False':
             cc.ChangeDutyCycle(turn[1])
             #print(turn)
-    if temp > 30:
-        showwarning(title='Warning', message='Potential Overheating: Please shut off device', command=lambda: [root.destroy(),GPIO.cleanup()])
     root.after(1,scanning)
 def mode_selected():
     #Resets widgets according to last mode
