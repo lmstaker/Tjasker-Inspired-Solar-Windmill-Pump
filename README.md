@@ -2,8 +2,7 @@
 
 Created by: Liam Staker
 
-Most recent version: `Tjasker_GUI`, is being troubleshooted for use in Raspberry Pi
-and is the most recent applicable version. In order to run properly, ttkthemes must be installed and can be found here <https://github.com/TkinterEP/ttkthemes/tree/master>. An unthemed version is also available for use as `Tjasker_GUI_Unthemed` and does not require installations beyond the Raspberry Pi.
+Most recent version: `Tjasker_GUI2`, is the most recent applicable version for use with DC motor devices, `Tjasker_GUI_Stepper` is the most recent applicable version for use in stepper motor devices. In order to run properly, ttkthemes must be installed and can be found here <https://github.com/TkinterEP/ttkthemes/tree/master>. An unthemed version is also available for use as `Tjasker_GUI_Unthemed` and does not require installations beyond the Raspberry Pi.
 
 ## License and Warranty
 This program is free software: you can redistribute it and/or modify
