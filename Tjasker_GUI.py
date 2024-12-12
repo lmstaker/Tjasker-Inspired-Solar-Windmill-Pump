@@ -5,8 +5,10 @@ from time import sleep
 import tkinter as tk
 from tkinter import ttk
 from tkinter.messagebox import showinfo
+from tkinter.messagebox import showwarning
 from ttkthemes import ThemedTk
 from time import sleep
+import MCP9808mod5
 #Initialize PWM Output
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(19,GPIO.OUT)
@@ -16,6 +18,13 @@ cc = GPIO.PWM(13,100)
 GPIO.setup(24, GPIO.OUT) #Lights
 cw.start(0)
 cc.start(0)
+#Define motion with direction and speed parameters
+spinning = False
+turn = [0,0]
+temp  = 0
+#Initialize temperature sensor
+sensor = MCP9808mod5.MCP9808(0x18)
+sensor.configure()
 #Initialize window
 root=ThemedTk(theme='black')
 root.configure(bg='black')
@@ -37,6 +46,11 @@ def lights_on():
     GPIO.output(24, GPIO.HIGH)
 def lights_off():
     GPIO.output(24,GPIO.LOW)
+#Sensor Reading
+def sensor_reading():
+    global temp
+    temp=sensor.read_temperature()
+    showinfo(title='System Reading', message=temp)
 #Window dimensions and position
 ww = 700
 wh = 700
@@ -57,6 +71,9 @@ view.add_command(label='Light Mode',command=light_mode)
 view.add_command(label='Dark Mode', command=dark_mode)
 view.add_command(label='High Contrast Mode', command=high_contrast_mode)
 view.add_command(label='Patriotic Mode', command=patriotic_mode)
+system = tk.Menu(menubar, tearoff=0)
+menubar.add_cascade(label='System', menu=system)
+system.add_command(label='Temperature',command=sensor_reading)
 esc = tk.Menu(menubar, tearoff=0)
 menubar.add_cascade(label='Exit', menu=esc)
 esc.add_command(label='Exit',command=lambda: [root.destroy(),GPIO.cleanup()])
@@ -75,12 +92,11 @@ selected_mode = ttk.Combobox(root,width=27,textvariable=mode)
 selected_mode['values'] = ('Set Run', 'Continuous')
 selected_mode.pack(padx=5,pady=10)
 selected_mode.current()
-#Define motion with direction and speed parameters
-spinning = False
-turn = [0,0]
 #Motor running
 def scanning():
+    global temp
     global turn
+    temp = sensor.read_temperature()
     if spinning:
         if turn[0] == 'True':
             cw.ChangeDutyCycle(turn[1])
@@ -88,6 +104,8 @@ def scanning():
         elif turn[0]=='False':
             cc.ChangeDutyCycle(turn[1])
             #print(turn)
+    if temp > 30:
+        showwarning(title='Warning', message='Potential Overheating: Please shut off device', command=lambda: [root.destroy(),GPIO.cleanup()])
     root.after(1,scanning)
 def mode_selected():
     #Resets widgets according to last mode
