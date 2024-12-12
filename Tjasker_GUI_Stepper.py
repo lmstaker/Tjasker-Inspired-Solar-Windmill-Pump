@@ -20,7 +20,7 @@ def setLogic(A1,B1,A2,B2,s):
     GPIO.output(27,A2)
     GPIO.output(22,B1)
     GPIO.output(23,B2)
-    t = .1/s
+    t = .1-.00098*s
     sleep(t)
 #Defines clockwise, counterclockwise rotations
 def CW(s,h=False):
