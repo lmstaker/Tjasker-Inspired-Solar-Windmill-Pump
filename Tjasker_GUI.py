@@ -1,5 +1,5 @@
 '''GUI code with dual mode selection, displaying error messages for
-invalid directional, speed, or duration inputs'''
+invalid directional, speed, or duration inputs v2.0'''
 import RPi.GPIO as GPIO
 from time import sleep
 import tkinter as tk
