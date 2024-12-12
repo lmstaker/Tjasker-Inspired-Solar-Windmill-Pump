@@ -20,6 +20,6 @@ Raspberry Pi Tjasker system, the program requires `Python 3` or later versions a
 ## Installation Instructions
 Themed version: Download and install `TTkThemes` at <https://github.com/TkinterEP/ttkthemes/tree/master> following the instructions given there (generally easiest to download and install directly from PyPi) and download `Tjasker_GUI`, run in Idle or any Python shell.
 
-Unthemed version: Download `Tjasker_GUI_Unthemed`, run in Idle or any Python shell.
+Unthemed version: Download `Tjasker_GUI_Unthemed` (for DC motor), or `Tjasker_GUI_Stepper_Unthemed` (for stepper motor), run in Idle or any Python shell.
 
 
