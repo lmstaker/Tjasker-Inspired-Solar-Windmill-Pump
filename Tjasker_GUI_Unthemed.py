@@ -1,17 +1,29 @@
+'''GUI code with dual mode selection, displaying error messages for
+invalid directional, speed, or duration inputs'''
 import RPi.GPIO as GPIO
 from time import sleep
 import tkinter as tk
 from tkinter import ttk
 from tkinter.messagebox import showinfo
-#from ttkthemes import ThemedTk
+from ttkthemes import ThemedTk
 from time import sleep
+#Initialize PWM Output
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(19,GPIO.OUT)
+GPIO.setup(13,GPIO.OUT)
+cw = GPIO.PWM(19,100)
+cc = GPIO.PWM(13,100)
+GPIO.setup(24, GPIO.OUT) #Lights
+cw.start(0)
+cc.start(0)
 #Initialize window
-root = tk.Tk()
-#root=ThemedTk(theme='adapta')
-#root.configure(bg='light blue')
-#root=ThemedTk(theme='black')
-#root.configure(bg='black')
+root=tk.Tk()
 root.title('Tjasker Control Panel')
+#Enable light controls
+def lights_on():
+    GPIO.output(24, GPIO.HIGH)
+def lights_off():
+    GPIO.output(24,GPIO.LOW)
 #Window dimensions and position
 ww = 700
 wh = 700
@@ -19,12 +31,18 @@ sw = root.winfo_screenwidth()
 sh = root.winfo_screenheight()
 c_x = int(sw/2 - ww/2)
 c_y = int(sh/2 - wh/2)
-#background_image=tk.PhotoImage(file=r"C:\Users\meh\Downloads\holland.png")
-#background_label = tk.Label(root, image=background_image)
-#background_label.place(x=0, y=0, relwidth=1, relheight=1)
 root.geometry(f'{ww}x{wh}+{c_x}+{c_y}')
-#Run Motor
-#Mode selection
+#Creates and managaes menubar items
+menubar = tk.Menu(root)
+lights = tk.Menu(menubar, tearoff=0)
+menubar.add_cascade(label='Lights', menu=lights)
+lights.add_command(label='On', command=lights_on)
+lights.add_command(label='Off', command=lights_off)
+esc = tk.Menu(menubar, tearoff=0)
+menubar.add_cascade(label='Exit', menu=esc)
+esc.add_command(label='Exit',command=lambda: [root.destroy(),GPIO.cleanup()])
+root.config(menu=menubar)
+#Mode selection, defines modes and creates menu/buttons to toggle modes
 welkom = ttk.Label(root,text='Welkom bij de Tjasker Bedieningspaneel',anchor=tk.CENTER,justify=tk.CENTER,
                     font=('Arial',20,'bold'))
 welkom.pack(pady=10)
@@ -38,52 +56,49 @@ selected_mode = ttk.Combobox(root,width=27,textvariable=mode)
 selected_mode['values'] = ('Set Run', 'Continuous')
 selected_mode.pack(padx=5,pady=10)
 selected_mode.current()
-#Define motion
+#Define motion with direction and speed parameters
 spinning = False
 turn = [0,0]
+#Motor running
 def scanning():
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(19,GPIO.OUT)
-    GPIO.setup(13,GPIO.OUT)
-    cw = GPIO.PWM(19,100)
-    cc = GPIO.PWM(13,100)
-    cw.start(0)
-    cc.start(0)
+    global turn
     if spinning:
         if turn[0] == 'True':
             cw.ChangeDutyCycle(turn[1])
-            print(turn)
+            #print(turn)
         elif turn[0]=='False':
             cc.ChangeDutyCycle(turn[1])
-            print(turn)
-    elif not spinning:
-        GPIO.cleanup()
+            #print(turn)
     root.after(1,scanning)
 def mode_selected():
+    #Resets widgets according to last mode
     def reset_widgets():
         changemode_button.destroy()
-        dir_lbl.destroy()
-        ccb.destroy()
-        cwb.destroy()
-        speed_slider_lbl.destroy()
-        speed_control.destroy()
-        speed_lbl.destroy()
-        speed_now_lbl.destroy()
-        spin_button.destroy()
-        if mode == 'Set Run':
-            settime.destroy()
-            duration_lbl.destroy()
-            time_entry.destroy()
-            estop.destroy()
-        elif mode == 'Continuous':
-            dir_button.destroy()
+        if mode == 'Set Run' or mode == 'Continuous':
+            dir_lbl.destroy()
+            ccb.destroy()
+            cwb.destroy()
+            speed_slider_lbl.destroy()
+            speed_control.destroy()
+            speed_lbl.destroy()
+            speed_now_lbl.destroy()
+            spin_button.destroy()
+            if mode == 'Set Run':
+                settime.destroy()
+                duration_lbl.destroy()
+                time_entry.destroy()
+                estop.destroy()
+            elif mode == 'Continuous':
+                dir_button.destroy()
+                cstop.destroy()
     #Stop
     def stop():
         global spinning
         if spinning:
+            cw.ChangeDutyCycle(0)
+            cc.ChangeDutyCycle(0)
             spinning = False
             msg = 'Stop Performed'
-            #showinfo(title='Stopped', message = msg)
             reset_widgets()
             mode_button = ttk.Button(root,text='Set Mode',command =lambda: [mode_button.destroy(), mode_selected()])
             mode_button.pack()
@@ -118,14 +133,15 @@ def mode_selected():
         speed_control.pack(fill='x',padx=5,pady=5)
         speed_lbl = ttk.Label(root,text='Set Speed:')
         speed_lbl.pack(fill='x',padx=5,pady=5)
-        speed_now_lbl = ttk.Label(root, text = current_speed)
+        speed_now_lbl = ttk.Label(root, text = str(float(get_current_speed())))
         speed_now_lbl.pack(fill='x',padx=5,pady=5)
-        #Input time
+        #Input duration of run
         duration = tk.StringVar()
         settime = ttk.Frame(root)
         settime.pack(fill='x',padx=5,pady=20)
         duration_lbl = ttk.Label(settime,text='Duration:')
-        duration_lbl.pack(fill='x',)
+        duration_lbl.pack(fill='x')
+        #Creates entry box to type duration
         time_entry = ttk.Entry(settime,textvariable = duration)
         time_entry.pack(fill='x')
         time_entry.focus()
@@ -134,19 +150,18 @@ def mode_selected():
             direction = selected_direction.get()
             speed = float(get_current_speed())
             dur = duration.get()
-            print(direction, speed, dur.isdigit())
             #Validate input settings
             if (direction != 'True') and (direction != 'False'):
                 msg = 'Please select a direction'
                 showinfo(title='Error',message = msg)
-            elif 10 > speed:
+            elif 10 > speed: #Reject speeds too low for motor movement
                 msg = 'Please select a valid speed'
                 showinfo(title='Error',message=msg)
-            elif not dur.isdigit():
+            elif not dur.isdigit(): #Reject entries that are not a valid duration
                 msg = 'Please input a valid duration'
                 showinfo(title='Error',message=msg)
             else:
-                #Run Tjasker
+                #Run Tjasker if all inputs are valid
                 changemode_button.destroy()
                 spin_button.destroy()
                 global spinning
@@ -155,12 +170,17 @@ def mode_selected():
                 turn = [direction, speed]
                 root.after(int(1000*float(dur)),stop)
                 msg = direction + ' ' + str(speed) + ' ' + dur
-                #showinfo(title='spinning', message = msg)  
+        #Creates button to start run
         spin_button = ttk.Button(root,text = 'Run Tsajker',command=spin)
         spin_button.pack(fill='x',pady=10)
+        #Emergency stop to force stop during run
         estop = ttk.Button(root,text='Emergency Stop', command=lambda: [stop()])
         estop.pack(fill='x',pady=10)
+        '''Scans for whether motor is "spinning" every millisecond,
+        runs "scanning" if true'''
+        root.after(1,scanning)
     elif mode == 'Continuous':
+        '''Same input definitions as set mode, but excludes duration input'''
         #Input to select direction
         selected_direction = tk.StringVar()
         directions = (('Clockwise','True'), ('Counterclockwise','False'))
@@ -192,7 +212,7 @@ def mode_selected():
         speed_control.pack(fill='x',padx=5,pady=5)
         speed_lbl = ttk.Label(root,text='Current Speed:')
         speed_lbl.pack(fill='x',padx=5,pady=5)
-        speed_now_lbl = ttk.Label(root, text = current_speed)
+        speed_now_lbl = ttk.Label(root, text = str(float(get_current_speed())))
         speed_now_lbl.pack(fill='x',padx=5,pady=5)
         #Input speed and direction into Tsajker
         def spin():
@@ -200,7 +220,6 @@ def mode_selected():
             global turn
             direction = selected_direction.get()
             speed = float(get_current_speed())
-            dur = 'go'
             #Validate input settings
             if (direction != 'True') and (direction != 'False'):
                 msg = 'Please select a direction'
@@ -209,20 +228,21 @@ def mode_selected():
                 msg = 'Please select a valid speed'
                 showinfo(title='Error',message=msg)
             else:
-                msg = direction + ' ' + str(speed) + ' ' + dur
-                spinning = True
                 turn  = [direction,speed]
                 changemode_button.destroy()
                 spin_button.destroy()
-                cstop = ttk.Button(root,text='Stop', command=lambda: [cstop.destroy(),stop()])
-                cstop.pack(fill='x',pady=10)
-                #showinfo(title='spinning', message = msg)
+                print('yes')
+                spinning = True
+        #Button for spin command
         spin_button = ttk.Button(root,text = 'Run Tsajker',command=spin)
         spin_button.pack(fill='x',pady=10)
+        cstop = ttk.Button(root,text='Stop', command=lambda: [stop()])
+        cstop.pack(fill='x',pady=10)
+        root.after(1,scanning)
         root.mainloop()
     else:
         msg = 'Please select a mode'
         showinfo(title='Error', message=msg)
-root.after(1,scanning)
+#Creates mode menu selection button
 mode_button = ttk.Button(root,text='Set Mode',command =lambda: [mode_button.destroy(), mode_selected()])
 mode_button.pack()
