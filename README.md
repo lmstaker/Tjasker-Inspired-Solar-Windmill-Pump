@@ -12,6 +12,7 @@ This program is distributed in the hope that it will be useful,
 but without any warranty.
 
 TTKThemes created by user RedFantom on GitHub: <https://github.com/TkinterEP/ttkthemes/tree/master>
+
 Thermal sensor driver `MCP9808mod5` sourced by Ran Yang
 ## Usage
 For more information regarding the proper usage of this software, consult the Tjasker Instruction Manual
